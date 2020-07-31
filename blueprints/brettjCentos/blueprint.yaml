@@ -1,0 +1,71 @@
+formatVersion: 2
+inputs:
+  hostname:
+    type: string
+    maxLength: 16
+    minLength: 3
+    pattern: '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])$'
+    title: Hostname
+    description: 'Enter VM hostname. 3 - 15 characters, letters, numbers and ''-'' only.'
+  serverType:
+    type: string
+    title: Server Type
+    oneOf:
+      - title: SQL
+        const: 'serverType:SQL'
+      - title: General
+        const: 'serverType:General'
+  image:
+    type: string
+    title: Select O/S
+    oneOf:
+      - title: Centos7
+        const: brettj-centos7
+      - title: Windows Server 2016
+        const: ws2016
+  network:
+    type: string
+    title: Network Name
+    oneOf:
+      - title: VM Network
+        const: VM Network
+      - title: OOB
+        const: vdsoob
+  domain:
+    type: string
+    title: Domain Name
+    enum:
+      - contoso.local
+      - vsphere.local
+  memory:
+    type: integer
+    title: Memory (GB)
+    minimum: 1
+    maximum: 32
+  cpu:
+    type: integer
+    title: vCPU Count
+    minimum: 1
+    maximum: 4
+resources:
+  Cloud_vSphere_Machine_1:
+    type: Cloud.vSphere.Machine
+    properties:
+      name: '${to_lower(input.hostname)}'
+      image: '${input.image}'
+      cpuCount: '${input.cpu}'
+      totalMemoryMB: '${(input.memory)*1024}'
+      customizationSpec: centos7
+      networks:
+        - network: '${resource.Cloud_vSphere_Network_1.id}'
+      constraints:
+        - tag: '${input.serverType}'
+      domainName: '${input.domain}'
+      tags:
+        - key: test
+          value: tagged
+  Cloud_vSphere_Network_1:
+    type: Cloud.vSphere.Network
+    properties:
+      networkType: existing
+      name: '${input.network}'
