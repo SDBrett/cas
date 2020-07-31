@@ -1,0 +1,156 @@
+### Updated Code ####
+formatVersion: 1
+inputs:
+  Osimage:
+    type: string
+    default: General-VRA-SOE-Win2012R2-INT-APP-01
+    oneOf:
+      - title: Windows Server 2012
+        const: General-VRA-SOE-Win2012R2-INT-APP-01
+      - title: Windows Server 2019
+        const: General-VRA-SOE-Win2019-INT-APP-01
+    title: Select Image/OS
+    description: Specify which operating system should be deployed on the machine.
+  tshirt:
+    type: string
+    default: Small
+    oneOf:
+      - title: 'Small (2cpu,4GB)'
+        const: Small
+      - title: 'Medium (4cpu,8GB)'
+        const: Medium
+      - title: 'Large (6cpu,12GB)'
+        const: Large
+    title: Machine Size
+    description: Specify what size the VM should be.
+  location:
+    type: string
+    title: Location
+    default: 'region:bne'
+    oneOf:
+      - title: Brisbane
+        const: 'region:bne'
+      - title: Sydney
+        const: 'region:syd'
+    description: Select region which virtual workload will be provisioned into
+  environment:
+    type: string
+    title: Environment
+    default: 'environment:development'
+    oneOf:
+      - title: Production
+        const: 'environment:production'
+      - title: Development
+        const: 'environment:development'
+    description: Select Environment
+  storageTier:
+    type: string
+    title: Storage Tier
+    default: 'storagetier:one'
+    oneOf:
+      - title: '1'
+        const: 'storagetier:one'
+      - title: '2'
+        const: 'storagetier:two'
+      - title: '3'
+        const: 'storagetier:three'
+    description: Select a Storage Tier
+  storageClass:
+    type: string
+    title: Storage Class
+    default: 'storageclass:one'
+    oneOf:
+      - title: '1'
+        const: 'storageclass:one'
+      - title: '2'
+        const: 'storageclass:two'
+      - title: '3'
+        const: 'storageclass:three'
+    description: Select a Storage Class
+  classification:
+    type: string
+    title: Classification
+    default: 'classification:general'
+    oneOf:
+      - title: General
+        const: 'classification:general'
+      - title: Protected
+        const: 'classification:protected'
+    description: Select the classification
+  networkProfile:
+    type: string
+    tile: Network profile
+    default: 'tier:application'
+    oneOf:
+      - title: Application
+        const: 'tier:application'
+      - title: Database
+        const: 'tier:database'
+      - title: Web
+        const: 'tier:web'
+    description: Select the classification
+  Domain:
+    type: string
+    title: Domain
+    default: au.int.sonichealthcare
+    oneOf:
+      - title: au.int.sonichealthcare
+        const: au.int.sonichealthcare
+      - title: int.sonichealthcare
+        const: int.sonichealthcare
+      - title: sonichealth.com.au
+        const: sonichealth.com.au
+      - title: audmz.ext.sonichealthcare
+        const: audmz.ext.sonichealthcare
+      - title: autest.exttest.sonichealthcare
+        const: autest.exttest.sonichealthcare
+    description: Select Domain //template specific
+resources:
+  Cloud_SecurityGroup_1:
+    type: Cloud.SecurityGroup
+    metadata:
+      layoutPosition:
+        - 0
+        - 0
+    properties:
+      constraints: []
+      securityGroupType: existing
+  WinTest:
+    type: Cloud.vSphere.Machine
+    metadata:
+      layoutPosition:
+        - 0
+        - 1
+    properties:
+      customizationSpec: '${input.Domain}'
+      image: '${input.Osimage}'
+      storage:
+        constraints:
+          - tag: '${input.storageTier}'
+          - tag: '${input.storageClass}'
+          - tag: 'cluster:win'
+      flavor: '${input.tshirt}'
+      Infoblox.IPAM.createFixedAddress: true
+      Infoblox.IPAM.Network.dnsSuffix: '${input.Domain}'
+      networks:
+        - network: '${resource.Cloud_Network_1.id}'
+          assignment: static
+          securityGroups:
+            - '${resource.Cloud_SecurityGroup_1.id}'
+      constraints:
+        - tag: 'platform:vsphere'
+        - tag: '${input.location}'
+        - tag: 'cluster:win'
+        - tag: '${input.classification}'
+  Cloud_Network_1:
+    type: Cloud.Network
+    metadata:
+      layoutPosition:
+        - 1
+        - 0
+    properties:
+      networkType: existing
+      constraints:
+        - tag: '${input.networkProfile}'
+        - tag: '${input.location}'
+        - tag: 'securityzone:int'
