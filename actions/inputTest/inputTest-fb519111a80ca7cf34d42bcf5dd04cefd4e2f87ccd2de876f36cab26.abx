@@ -1,0 +1,12 @@
+---
+exportVersion: "1"
+exportId: "8a5e85f073564ffd01737dc5b15712d4"
+name: "inputTest"
+runtime: "nodejs"
+entrypoint: "handler"
+timeoutSeconds: 600
+deploymentTimeoutSeconds: 900
+actionType: "SCRIPT"
+configuration:
+  const_azure-system_managed_identity: false
+memoryInMB: 300
